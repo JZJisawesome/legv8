@@ -202,7 +202,12 @@ fn main() {
 }
 
 fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
-    let tokens: Vec<&str> = instruction_string.split_whitespace().collect();
+    let mut tokens = Vec::<&str>::with_capacity(5);//Max number of tokens we expect
+    for token in instruction_string.split(&[' ', '\t', '\n', '\r', ',', '[', ']']) {
+        if !token.is_empty() {
+            tokens.push(token);
+        }
+    }
     if tokens.len() < 2 {//Basic sanity check; every instruction has at least 1 operand
         return None;
     }
@@ -224,6 +229,33 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
             }
         }
     }
+
+    //Ensure, based on the instruction type, that there are the correct number of operands
+    match instruction_type {
+        InstructionType::R | InstructionType::I | InstructionType::D => {
+            //For R, this is the instruction followed by three registers (except for BR, which only has 1 register after it)
+            //For I, this is the instruction followed by two registers and an immediate
+            //For D, this is the instruction followed by a register, another register, and an offset
+            if tokens.len() != 4 {
+                if !((tokens[0] == "BR") && (tokens.len() == 2)) {
+                    return None;
+                }
+            }
+        },
+        InstructionType::IM => { if tokens.len() != 5 { return None; }},//Instruction, register, immediate, "LSL", and LSL amount
+        InstructionType::B => { if tokens.len() != 2 { return None; }},//Instruction and offset
+        InstructionType::CB => {
+            //Instruction, register and offset, unless the is B.cond, in which case there is only an offset
+            if (tokens.len() != 3) || (tokens[0].starts_with("B.") && (tokens.len() != 2)) {
+                if !(tokens[0].starts_with("B.") && (tokens.len() == 2)) {
+                    return None;
+                }
+            }
+        },
+    }
+
+    //At this point, we can assume the instruction, as well as the number of tokens is valid
+    //However, the tokens themselves, as well as the condition for B.cond, will still need checking
 
     //Begin to construct the instruction
     let mut instruction = 0u32;
@@ -316,7 +348,35 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
         }
     }
 
+    //Determine Rd/Rt/neither depending on the instruction type
+    match instruction_type {
+        InstructionType::R | InstructionType::I | InstructionType::D | InstructionType::CB | InstructionType::IM => {
+            if let Some(rd_rt) = parse_register(tokens[1]) {
+                instruction.set_bits(rd_rt, 4, 0);
+            }
+        }
+        InstructionType::B => {}//It does not have this field
+    }
+
     //TODO other fields
 
     return Some((instruction_type, instruction));
+}
+
+fn parse_register(register_token: &str) -> Option<u32> {
+    if let Some(relevant_part_of_token) = register_token.strip_prefix("X") {
+        if let Some(parsed_register_number) = relevant_part_of_token.parse::<u32>().ok() {
+            if parsed_register_number < 32 {
+                return Some(parsed_register_number);
+            } else {
+                return None;
+            }
+        } else if relevant_part_of_token == "ZR" {//The zero register
+            return Some(31);
+        } else {
+            return None;
+        }
+    } else {//Register did not start with X
+        return None;
+    }
 }
