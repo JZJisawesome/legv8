@@ -1,9 +1,13 @@
-/* NAME//TODO
+/* legv8assembles.rs
  * By: John Jekel
+ * Copyright (C) 2022-2023 John Jekel
+ * See the LICENSE file at the root of the project for licensing info.
  *
- * TODO description
+ * Assembles individual LEGv8 instructions
  *
 */
+
+//TODO move more things to the library
 
 /* Imports */
 
@@ -58,11 +62,12 @@ fn main() {
         eprint!("legv8assemble> ");
         stdin.read_line(&mut line_buffer).unwrap();
         let trimmed_line = line_buffer.trim();
+        let nice_line = trimmed_line.to_string().to_uppercase();
 
-        if let Some((instruction_type, instruction)) = assemble(trimmed_line) {
+        if let Some((instruction_type, instruction)) = assemble(&nice_line) {
             match instruction_type {
                 InstructionType::R => {
-                    eprintln!("  The instruction \"{}\" is R type", trimmed_line);
+                    eprintln!("  The instruction \"{}\" is R type", nice_line);
                     eprintln!("    ________________________________________________");
                     eprintln!("    |          11 |     5 |      6 |     5 |     5 | <- Field length in bits");
                     eprintln!("    |----------------------------------------------|");
@@ -80,7 +85,7 @@ fn main() {
                     eprintln!("    ------------------------------------------------");
                 },
                 InstructionType::I => {
-                    eprintln!("  The instruction \"{}\" is I type", trimmed_line);
+                    eprintln!("  The instruction \"{}\" is I type", nice_line);
                     eprintln!("    _______________________________________________");
                     eprintln!("    |           10 |           12 |     5 |     5 | <- Field length in bits");
                     eprintln!("    |---------------------------------------------|");
@@ -97,7 +102,7 @@ fn main() {
                     eprintln!("    -----------------------------------------------");
                 },
                 InstructionType::D => {
-                    eprintln!("  The instruction \"{}\" is D type", trimmed_line);
+                    eprintln!("  The instruction \"{}\" is D type", nice_line);
                     eprintln!("    ___________________________________________________");
                     eprintln!("    |          11 |         9 |     2 |     5 |     5 | <- Field length in bits");
                     eprintln!("    |-------------------------------------------------|");
@@ -114,6 +119,7 @@ fn main() {
                     );
                     eprintln!("    ---------------------------------------------------");
                 }
+                _ => { todo!(); }//TODO other instruction types
             }
 
             eprintln!("  Alternatively, here is the instruction in a few, potentially more convenient formats:");
@@ -122,13 +128,43 @@ fn main() {
             eprintln!("    Oct: {:#o}", instruction);
             eprintln!("    Dec: {}", instruction);
         } else {
-            eprintln!("\tHmm, it seems that the instruction you entered isn't valid. Give it another go!");
+            eprintln!("  Hmm, it seems that the instruction you entered isn't valid. Give it another go!");
         }
 
         line_buffer.truncate(0);
     }
 }
 
-fn assemble(string: &str) -> Option<(InstructionType, u32)> {
-    return Some((InstructionType::D, 0xDEADBEEF));//TODO
+fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
+    let tokens: Vec<&str> = instruction_string.split_whitespace().collect();
+    if tokens.len() < 2 {
+        return None;
+    }
+
+    //Determine the instruction type
+    let instruction_type;
+    match tokens[0] {
+        "ADD" | "SUB" | "ADDS" | "SUBS" | "AND" | "ORR" | "EOR" | "LSL" | "LSR" | "BR" => { instruction_type = InstructionType::R; },
+        "ADDI" | "SUBI" | "ADDIS" | "SUBIS" | "ANDI" | "ORRI" | "EORI" => { instruction_type = InstructionType::I; },
+        "LDUR" | "STUR" | "LDURSW" | "STURW" | "LDURH" | "STURH" | "LDURB" | "STURB" | "LDXR" | "STXR" => { instruction_type = InstructionType::D; },
+        "MOVZ" | "MOVK" => { instruction_type = InstructionType::IW; },
+        "B" | "BL" => { instruction_type = InstructionType::B; },
+        "CBZ" | "CBNZ"  => { instruction_type = InstructionType::CB; },
+        token => {
+            if token.starts_with("B.") {//B.cond
+                instruction_type = InstructionType::CB;
+            } else {//Invalid
+                return None;
+            }
+        }
+    }
+
+    //Determine the opcode
+    /*let opcode;
+    match tokens[0] {
+
+    }
+    */
+
+    return Some((instruction_type, 0xDEADBEEF));//TODO
 }

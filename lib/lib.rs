@@ -1,7 +1,9 @@
-/* NAME//TODO
+/* lib.rs
  * By: John Jekel
+ * Copyright (C) 2022-2023 John Jekel
+ * See the LICENSE file at the root of the project for licensing info.
  *
- * TODO description
+ * LEGv8 Library
  *
 */
 
@@ -26,7 +28,10 @@
 pub enum InstructionType {
     R,
     I,
-    D
+    D,
+    B,
+    CB,
+    IW
 }
 
 /* Associated Functions and Methods */
