@@ -69,13 +69,13 @@ impl ConvenientlyBitAccessible for u32 {
 /* Functions */
 
 fn main() {
-    eprintln!("legv8assemble, by John Jekel (2023)\n");
-    eprintln!("At the prompt, enter a LEGv8 instruction to assemble, or press Ctrl+C to exit...");
+    eprintln!("\x1b[1m\x1b[35mlegv8assemble\x1b[0m, by \x1b[96mJohn Jekel\x1b[0m (2023)\n");
+    eprintln!("\x1b[90mAt the prompt, enter a LEGv8 instruction to assemble, or press Ctrl+C to exit...\x1b[0m");
 
     let stdin = std::io::stdin();
     let mut line_buffer = String::new();
     loop {
-        eprint!("legv8assemble> ");
+        eprint!("\x1b[1m\x1b[35mlegv8assemble\x1b[97m>\x1b[0m ");
         stdin.read_line(&mut line_buffer).unwrap();
         let trimmed_line = line_buffer.trim();
         let nice_line = trimmed_line.to_string().to_uppercase();
@@ -83,15 +83,15 @@ fn main() {
         if let Some((instruction_type, instruction)) = assemble(&nice_line) {
             match instruction_type {
                 InstructionType::R => {
-                    eprintln!("  The instruction \"{}\" is R type", nice_line);
+                    eprintln!("  The instruction \"\x1b[1m{}\x1b[0m\" is \x1b[94mR\x1b[0m-type", nice_line);
                     eprintln!("    ________________________________________________");
-                    eprintln!("    |          11 |     5 |      6 |     5 |     5 | <- Field length in bits");
+                    eprintln!("    |          \x1b[93m11\x1b[0m |     \x1b[93m5\x1b[0m |      \x1b[93m6\x1b[0m |     \x1b[93m5\x1b[0m |     \x1b[93m5\x1b[0m | \x1b[90m<- Field length in bits\x1b[0m");
                     eprintln!("    |----------------------------------------------|");
-                    eprintln!("    | 31       21 | 20 16 | 15  10 | 9   5 | 4   0 | <- Field start and end bit indexes (inclusive)");
+                    eprintln!("    | \x1b[93m31       21\x1b[0m | \x1b[93m20 16\x1b[0m | \x1b[93m15  10\x1b[0m | \x1b[93m9   5\x1b[0m | \x1b[93m4   0\x1b[0m | \x1b[90m<- Field start and end bit indexes (inclusive)\x1b[0m");
                     eprintln!("    |----------------------------------------------|");
-                    eprintln!("    | opcode      | Rm    | shamt  | Rn    | Rd    | <- Field name");
+                    eprintln!("    | \x1b[93mopcode\x1b[0m      | \x1b[93mRm\x1b[0m    | \x1b[93mshamt\x1b[0m  | \x1b[93mRn\x1b[0m    | \x1b[93mRd\x1b[0m    | \x1b[90m<- Field name\x1b[0m");
                     eprintln!("    |----------------------------------------------|");
-                    eprintln!("    | {:0>11b} | {:0>5b} | {:0>6b} | {:0>5b} | {:0>5b} | <- Field contents",
+                    eprintln!("    | \x1b[96m{:0>11b}\x1b[0m | \x1b[96m{:0>5b}\x1b[0m | \x1b[96m{:0>6b}\x1b[0m | \x1b[96m{:0>5b}\x1b[0m | \x1b[96m{:0>5b}\x1b[0m | \x1b[90m<- Field contents\x1b[0m",
                         instruction.get_bits(31, 21),
                         instruction.get_bits(20, 16),
                         instruction.get_bits(15, 10),
@@ -101,15 +101,15 @@ fn main() {
                     eprintln!("    ------------------------------------------------");
                 },
                 InstructionType::I => {
-                    eprintln!("  The instruction \"{}\" is I type", nice_line);
+                    eprintln!("  The instruction \"\x1b[1m{}\x1b[0m\" is \x1b[94mI\x1b[0m-type", nice_line);
                     eprintln!("    _____________________________________________");
-                    eprintln!("    |         10 |           12 |     5 |     5 | <- Field length in bits");
+                    eprintln!("    |         \x1b[93m10\x1b[0m |           \x1b[93m12\x1b[0m |     \x1b[93m5\x1b[0m |     \x1b[93m5\x1b[0m | \x1b[90m<- Field length in bits\x1b[0m");
                     eprintln!("    |-------------------------------------------|");
-                    eprintln!("    | 31      22 | 21        10 | 9   5 | 4   0 | <- Field start and end bit indexes (inclusive)");
+                    eprintln!("    | \x1b[93m31      22\x1b[0m | \x1b[93m21        10\x1b[0m | \x1b[93m9   5\x1b[0m | \x1b[93m4   0\x1b[0m | \x1b[90m<- Field start and end bit indexes (inclusive)\x1b[0m");
                     eprintln!("    |-------------------------------------------|");
-                    eprintln!("    | opcode     | immediate    | Rn    | Rd    | <- Field name");
+                    eprintln!("    | \x1b[93mopcode\x1b[0m     | \x1b[93mimmediate\x1b[0m    | \x1b[93mRn\x1b[0m    | \x1b[93mRd\x1b[0m    | \x1b[90m<- Field name\x1b[0m");
                     eprintln!("    |-------------------------------------------|");
-                    eprintln!("    | {:0>10b} | {:0>12b} | {:0>5b} | {:0>5b} | <- Field contents",
+                    eprintln!("    | \x1b[96m{:0>10b}\x1b[0m | \x1b[96m{:0>12b}\x1b[0m | \x1b[96m{:0>5b}\x1b[0m | \x1b[96m{:0>5b}\x1b[0m | \x1b[90m<- Field contents\x1b[0m",
                         instruction.get_bits(31, 22),
                         instruction.get_bits(21, 10),
                         instruction.get_bits(9, 5),
@@ -118,15 +118,15 @@ fn main() {
                     eprintln!("    ---------------------------------------------");
                 },
                 InstructionType::D => {
-                    eprintln!("  The instruction \"{}\" is D type", nice_line);
+                    eprintln!("  The instruction \"\x1b[1m{}\x1b[0m\" is \x1b[94mD\x1b[0m-type", nice_line);
                     eprintln!("    ___________________________________________________");
-                    eprintln!("    |          11 |         9 |     2 |     5 |     5 | <- Field length in bits");
+                    eprintln!("    |          \x1b[93m11\x1b[0m |         \x1b[93m9\x1b[0m |     \x1b[93m2\x1b[0m |     \x1b[93m5\x1b[0m |     \x1b[93m5\x1b[0m | \x1b[90m<- Field length in bits\x1b[0m");
                     eprintln!("    |-------------------------------------------------|");
-                    eprintln!("    | 31       21 | 20     12 | 11 10 | 9   5 | 4   0 | <- Field start and end bit indexes (inclusive)");
+                    eprintln!("    | \x1b[93m31       21\x1b[0m | \x1b[93m20     12\x1b[0m | \x1b[93m11 10\x1b[0m | \x1b[93m9   5\x1b[0m | \x1b[93m4   0\x1b[0m | \x1b[90m<- Field start and end bit indexes (inclusive)\x1b[0m");
                     eprintln!("    |-------------------------------------------------|");
-                    eprintln!("    | opcode      | address   | op2   | Rn    | Rt    | <- Field name");
+                    eprintln!("    | \x1b[93mopcode\x1b[0m      | \x1b[93maddress\x1b[0m   | \x1b[93mop2\x1b[0m   | \x1b[93mRn\x1b[0m    | \x1b[93mRt\x1b[0m    | \x1b[90m<- Field name\x1b[0m");
                     eprintln!("    |-------------------------------------------------|");
-                    eprintln!("    | {:0>11b} | {:0>9b} | {:0>1b}   {:0>1b} | {:0>5b} | {:0>5b} | <- Field contents",
+                    eprintln!("    | \x1b[96m{:0>11b}\x1b[0m | \x1b[96m{:0>9b}\x1b[0m | \x1b[96m{:0>1b}\x1b[0m   \x1b[96m{:0>1b}\x1b[0m | \x1b[96m{:0>5b}\x1b[0m | \x1b[96m{:0>5b}\x1b[0m | \x1b[90m<- Field contents\x1b[0m",
                         instruction.get_bits(31, 21),
                         instruction.get_bits(20, 12),
                         instruction.get_bit(11), instruction.get_bit(10),
@@ -136,30 +136,30 @@ fn main() {
                     eprintln!("    ------------------------------------------");
                 },
                 InstructionType::B => {
-                    eprintln!("  The instruction \"{}\" is B type", nice_line);
+                    eprintln!("  The instruction \"\x1b[1m{}\x1b[0m\" is \x1b[94mB\x1b[0m-type", nice_line);
                     eprintln!("    _______________________________________");
-                    eprintln!("    |      6 |                         26 | <- Field length in bits");
+                    eprintln!("    |      \x1b[93m6\x1b[0m |                         \x1b[93m26\x1b[0m | \x1b[90m<- Field length in bits\x1b[0m");
                     eprintln!("    |-------------------------------------|");
-                    eprintln!("    | 31  26 | 25                       0 | <- Field start and end bit indexes (inclusive)");
+                    eprintln!("    | \x1b[93m31  26\x1b[0m | \x1b[93m25                       0\x1b[0m | \x1b[90m<- Field start and end bit indexes (inclusive)\x1b[0m");
                     eprintln!("    |-------------------------------------|");
-                    eprintln!("    | opcode | address                    | <- Field name");
+                    eprintln!("    | \x1b[93mopcode\x1b[0m | \x1b[93maddress\x1b[0m                    | \x1b[90m<- Field name\x1b[0m");
                     eprintln!("    |-------------------------------------|");
-                    eprintln!("    | {:0>6b} | {:0>26b} | <- Field contents",
+                    eprintln!("    | \x1b[96m{:0>6b}\x1b[0m | \x1b[96m{:0>26b}\x1b[0m | \x1b[90m<- Field contents\x1b[0m",
                         instruction.get_bits(31, 26),
                         instruction.get_bits(25, 0),
                     );
                     eprintln!("    ---------------------------------------");
                 },
                 InstructionType::CB => {
-                    eprintln!("  The instruction \"{}\" is CB type", nice_line);
+                    eprintln!("  The instruction \"\x1b[1m{}\x1b[0m\" is \x1b[94mCB\x1b[0m-type", nice_line);
                     eprintln!("    __________________________________________");
-                    eprintln!("    |        8 |                  19 |     5 | <- Field length in bits");
+                    eprintln!("    |        \x1b[93m8\x1b[0m |                  \x1b[93m19\x1b[0m |     \x1b[93m5\x1b[0m | \x1b[90m<- Field length in bits\x1b[0m");
                     eprintln!("    |----------------------------------------|");
-                    eprintln!("    | 31    24 | 23                5 | 4   0 | <- Field start and end bit indexes (inclusive)");
+                    eprintln!("    | \x1b[93m31    24\x1b[0m | \x1b[93m23                5\x1b[0m | \x1b[93m4   0\x1b[0m | \x1b[90m<- Field start and end bit indexes (inclusive)\x1b[0m");
                     eprintln!("    |----------------------------------------|");
-                    eprintln!("    | opcode   | address             | Rt    | <- Field name");
+                    eprintln!("    | \x1b[93mopcode\x1b[0m   | \x1b[93maddress\x1b[0m             | \x1b[93mRt\x1b[0m    | \x1b[90m<- Field name\x1b[0m");
                     eprintln!("    |----------------------------------------|");
-                    eprintln!("    | {:0>8b} | {:0>19b} | {:0>5b} | <- Field contents",
+                    eprintln!("    | \x1b[96m{:0>8b}\x1b[0m | \x1b[96m{:0>19b}\x1b[0m | \x1b[96m{:0>5b}\x1b[0m | \x1b[90m<- Field contents\x1b[0m",
                         instruction.get_bits(31, 24),
                         instruction.get_bits(23, 5),
                         instruction.get_bits(4, 0)
@@ -167,15 +167,15 @@ fn main() {
                     eprintln!("    ------------------------------------------");
                 },
                 InstructionType::IM => {
-                    eprintln!("  The instruction \"{}\" is IM type", nice_line);
+                    eprintln!("  The instruction \"\x1b[1m{}\x1b[0m\" is \x1b[94mIM\x1b[0m-type", nice_line);
                     eprintln!("    ________________________________________________");
-                    eprintln!("    |         9 |     2 |               16 |     5 | <- Field length in bits");
+                    eprintln!("    |         \x1b[93m9\x1b[0m |     \x1b[93m2\x1b[0m |               \x1b[93m16\x1b[0m |     \x1b[93m5\x1b[0m | \x1b[90m<- Field length in bits\x1b[0m");
                     eprintln!("    |----------------------------------------------|");
-                    eprintln!("    | 31     22 | 23 21 | 20             5 | 4   0 | <- Field start and end bit indexes (inclusive)");
+                    eprintln!("    | \x1b[93m31     22\x1b[0m | \x1b[93m23 21\x1b[0m | \x1b[93m20             5\x1b[0m | \x1b[93m4   0\x1b[0m | \x1b[90m<- Field start and end bit indexes (inclusive)\x1b[0m");
                     eprintln!("    |----------------------------------------------|");
-                    eprintln!("    | opcode    | shamt | immediate        | Rd    | <- Field name");
+                    eprintln!("    | \x1b[93mopcode\x1b[0m    | \x1b[93mshamt\x1b[0m | \x1b[93mimmediate\x1b[0m        | \x1b[93mRd\x1b[0m    | \x1b[90m<- Field name\x1b[0m");
                     eprintln!("    |----------------------------------------------|");
-                    eprintln!("    | {:0>9b} | {:0>1b}   {:0>1b} | {:0>16b} | {:0>5b} | <- Field contents",
+                    eprintln!("    | \x1b[96m{:0>9b}\x1b[0m | \x1b[96m{:0>1b}\x1b[0m   \x1b[96m{:0>1b}\x1b[0m | \x1b[96m{:0>16b}\x1b[0m | \x1b[96m{:0>5b}\x1b[0m | \x1b[90m<- Field contents\x1b[0m",
                         instruction.get_bits(31, 23),
                         instruction.get_bit(22), instruction.get_bit(21),
                         instruction.get_bits(20, 5),
@@ -185,18 +185,18 @@ fn main() {
                 }
             }
 
-            eprintln!("  Alternatively, here is the instruction in a few, potentially more convenient formats:");
-            eprintln!("    Hex: {:#X}", instruction);
-            eprintln!("    Bin: {:#b}", instruction);
-            eprintln!("    Oct: {:#o}", instruction);
-            eprintln!("    Dec: {}", instruction);
+            eprintln!("  \x1b[92mAlternatively, here is the instruction in a few, potentially more convenient formats:\x1b[0m");
+            eprintln!("    Hex (BE): \x1b[96m{:#X}\x1b[0m", instruction);
+            eprintln!("    Bin (BE): \x1b[96m{:#b}\x1b[0m", instruction);
+            eprintln!("    Oct (BE): \x1b[96m{:#o}\x1b[0m", instruction);
+            eprintln!("    Dec (BE): \x1b[96m{}\x1b[0m", instruction);
             let instruction_le = instruction.swap_bytes();
-            eprintln!("    Hex (Little-Endian): {:#X}", instruction_le);
-            eprintln!("    Bin (Little-Endian): {:#b}", instruction_le);
-            eprintln!("    Oct (Little-Endian): {:#o}", instruction_le);
-            eprintln!("    Dec (Little-Endian): {}", instruction_le);
+            eprintln!("    Hex (LE): \x1b[96m{:#X}\x1b[0m", instruction_le);
+            eprintln!("    Bin (LE): \x1b[96m{:#b}\x1b[0m", instruction_le);
+            eprintln!("    Oct (LE): \x1b[96m{:#o}\x1b[0m", instruction_le);
+            eprintln!("    Dec (LE): \x1b[96m{}\x1b[0m", instruction_le);
         } else {
-            eprintln!("  Hmm, it seems that the instruction you entered isn't valid. Give it another go!");
+            eprintln!("  Hmm, it seems that the instruction you entered \x1b[91misn't valid\x1b[0m. Give it another go!");
         }
 
         line_buffer.truncate(0);
@@ -462,10 +462,10 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
 
         //There are only 4 valid shift amounts that can come after
         match smart_parse_uint(tokens[4]) {
-            Some(0) =>  { instruction.set_bits(0b00, 11, 10); },
-            Some(16) => { instruction.set_bits(0b01, 11, 10); },
-            Some(32) => { instruction.set_bits(0b10, 11, 10); },
-            Some(48) => { instruction.set_bits(0b11, 11, 10); },
+            Some(0) =>  { instruction.set_bits(0b00, 22, 21); },
+            Some(16) => { instruction.set_bits(0b01, 22, 21); },
+            Some(32) => { instruction.set_bits(0b10, 22, 21); },
+            Some(48) => { instruction.set_bits(0b11, 22, 21); },
             _ => { return None; }
         }
     }
