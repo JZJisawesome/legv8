@@ -428,6 +428,50 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
         }
     }
 
+    //Determine the branch address/immediate to use from the third token if the instruction type is CB or IM respectively
+    match instruction_type {
+        InstructionType::CB => {
+            if let Some(address) = smart_parse_uint(tokens[2]) {
+                if address > 0b1111111111111111111 {//Too large for the field to hold
+                    return None;
+                }
+                instruction.set_bits(address, 23, 5);
+            } else {
+                return None;
+            }
+        },
+        InstructionType::IM => {
+            if let Some(address) = smart_parse_uint(tokens[2]) {
+                if address > 0b1111111111111111 {//Too large for the field to hold
+                    return None;
+                }
+                instruction.set_bits(address, 20, 5);
+            } else {
+                return None;
+            }
+        },
+        InstructionType::R | InstructionType::I | InstructionType::D | InstructionType::B => {}//They do not have this operand
+    }
+
+    //Deal with the shift amount for IM-type instructions
+    if matches!(instruction_type, InstructionType::IM) {
+        //Ensure the user put lsl before the shift amount
+        if tokens[3] != "LSL" {
+            return None;
+        }
+
+        //There are only 4 valid shift amounts that can come after
+        match smart_parse_uint(tokens[4]) {
+            Some(0) =>  { instruction.set_bits(0b00, 11, 10); },
+            Some(16) => { instruction.set_bits(0b01, 11, 10); },
+            Some(32) => { instruction.set_bits(0b10, 11, 10); },
+            Some(48) => { instruction.set_bits(0b11, 11, 10); },
+            _ => { return None; }
+        }
+    }
+
+    //NOTE: For LEGv2, shamt for the R-type instructions, as well as op2 for D-type instructions, are always all zeroes
+
     return Some((instruction_type, instruction));
 }
 
