@@ -31,7 +31,7 @@ pub enum InstructionType {
     D,
     B,
     CB,
-    IW
+    IM
 }
 
 /* Associated Functions and Methods */

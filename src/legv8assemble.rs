@@ -86,20 +86,20 @@ fn main() {
                 },
                 InstructionType::I => {
                     eprintln!("  The instruction \"{}\" is I type", nice_line);
-                    eprintln!("    _______________________________________________");
-                    eprintln!("    |           10 |           12 |     5 |     5 | <- Field length in bits");
-                    eprintln!("    |---------------------------------------------|");
-                    eprintln!("    | 31        22 | 21        10 | 9   5 | 4   0 | <- Field start and end bit indexes (inclusive)");
-                    eprintln!("    |---------------------------------------------|");
-                    eprintln!("    | opcode       | immediate    | Rn    | Rd    | <- Field name");
-                    eprintln!("    |---------------------------------------------|");
+                    eprintln!("    _____________________________________________");
+                    eprintln!("    |         10 |           12 |     5 |     5 | <- Field length in bits");
+                    eprintln!("    |-------------------------------------------|");
+                    eprintln!("    | 31      22 | 21        10 | 9   5 | 4   0 | <- Field start and end bit indexes (inclusive)");
+                    eprintln!("    |-------------------------------------------|");
+                    eprintln!("    | opcode     | immediate    | Rn    | Rd    | <- Field name");
+                    eprintln!("    |-------------------------------------------|");
                     eprintln!("    | {:0>10b} | {:0>12b} | {:0>5b} | {:0>5b} | <- Field contents",
-                        instruction.get_bits(31, 20),
+                        instruction.get_bits(31, 22),
                         instruction.get_bits(21, 10),
                         instruction.get_bits(9, 5),
                         instruction.get_bits(4, 0)
                     );
-                    eprintln!("    -----------------------------------------------");
+                    eprintln!("    ---------------------------------------------");
                 },
                 InstructionType::D => {
                     eprintln!("  The instruction \"{}\" is D type", nice_line);
@@ -108,7 +108,7 @@ fn main() {
                     eprintln!("    |-------------------------------------------------|");
                     eprintln!("    | 31       21 | 20     12 | 11 10 | 9   5 | 4   0 | <- Field start and end bit indexes (inclusive)");
                     eprintln!("    |-------------------------------------------------|");
-                    eprintln!("    | opcode      | address   | op2   | Rn    | Rd    | <- Field name");
+                    eprintln!("    | opcode      | address   | op2   | Rn    | Rt    | <- Field name");
                     eprintln!("    |-------------------------------------------------|");
                     eprintln!("    | {:0>11b} | {:0>9b} | {:0>1b}   {:0>1b} | {:0>5b} | {:0>5b} | <- Field contents",
                         instruction.get_bits(31, 21),
@@ -117,9 +117,55 @@ fn main() {
                         instruction.get_bits(9, 5),
                         instruction.get_bits(4, 0)
                     );
-                    eprintln!("    ---------------------------------------------------");
+                    eprintln!("    ------------------------------------------");
+                },
+                InstructionType::B => {
+                    eprintln!("  The instruction \"{}\" is B type", nice_line);
+                    eprintln!("    _______________________________________");
+                    eprintln!("    |      6 |                         26 | <- Field length in bits");
+                    eprintln!("    |-------------------------------------|");
+                    eprintln!("    | 31  26 | 25                       0 | <- Field start and end bit indexes (inclusive)");
+                    eprintln!("    |-------------------------------------|");
+                    eprintln!("    | opcode | address                    | <- Field name");
+                    eprintln!("    |-------------------------------------|");
+                    eprintln!("    | {:0>6b} | {:0>26b} | <- Field contents",
+                        instruction.get_bits(31, 26),
+                        instruction.get_bits(25, 0),
+                    );
+                    eprintln!("    ---------------------------------------");
+                },
+                InstructionType::CB => {
+                    eprintln!("  The instruction \"{}\" is CB type", nice_line);
+                    eprintln!("    __________________________________________");
+                    eprintln!("    |        8 |                  19 |     5 | <- Field length in bits");
+                    eprintln!("    |----------------------------------------|");
+                    eprintln!("    | 31    24 | 23                5 | 4   0 | <- Field start and end bit indexes (inclusive)");
+                    eprintln!("    |----------------------------------------|");
+                    eprintln!("    | opcode   | address             | Rt    | <- Field name");
+                    eprintln!("    |----------------------------------------|");
+                    eprintln!("    | {:0>8b} | {:0>19b} | {:0>5b} | <- Field contents",
+                        instruction.get_bits(31, 24),
+                        instruction.get_bits(23, 5),
+                        instruction.get_bits(4, 0)
+                    );
+                    eprintln!("    ------------------------------------------");
+                },
+                InstructionType::IM => {
+                    eprintln!("  The instruction \"{}\" is IM type", nice_line);
+                    eprintln!("    __________________________________________");
+                    eprintln!("    |          11 |               16 |     5 | <- Field length in bits");
+                    eprintln!("    |----------------------------------------|");
+                    eprintln!("    | 31       21 | 20             5 | 4   0 | <- Field start and end bit indexes (inclusive)");
+                    eprintln!("    |----------------------------------------|");
+                    eprintln!("    | opcode      | immediate        | Rd    | <- Field name");
+                    eprintln!("    |----------------------------------------|");
+                    eprintln!("    | {:0>11b} | {:0>16b} | {:0>5b} | <- Field contents",
+                        instruction.get_bits(31, 21),
+                        instruction.get_bits(20, 5),
+                        instruction.get_bits(4, 0)
+                    );
+                    eprintln!("    ------------------------------------------");
                 }
-                _ => { todo!(); }//TODO other instruction types
             }
 
             eprintln!("  Alternatively, here is the instruction in a few, potentially more convenient formats:");
@@ -127,6 +173,11 @@ fn main() {
             eprintln!("    Bin: {:#b}", instruction);
             eprintln!("    Oct: {:#o}", instruction);
             eprintln!("    Dec: {}", instruction);
+            let instruction_le = instruction.swap_bytes();
+            eprintln!("    Hex (Little-Endian): {:#X}", instruction_le);
+            eprintln!("    Bin (Little-Endian): {:#b}", instruction_le);
+            eprintln!("    Oct (Little-Endian): {:#o}", instruction_le);
+            eprintln!("    Dec (Little-Endian): {}", instruction_le);
         } else {
             eprintln!("  Hmm, it seems that the instruction you entered isn't valid. Give it another go!");
         }
@@ -147,7 +198,7 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
         "ADD" | "SUB" | "ADDS" | "SUBS" | "AND" | "ORR" | "EOR" | "LSL" | "LSR" | "BR" => { instruction_type = InstructionType::R; },
         "ADDI" | "SUBI" | "ADDIS" | "SUBIS" | "ANDI" | "ORRI" | "EORI" => { instruction_type = InstructionType::I; },
         "LDUR" | "STUR" | "LDURSW" | "STURW" | "LDURH" | "STURH" | "LDURB" | "STURB" | "LDXR" | "STXR" => { instruction_type = InstructionType::D; },
-        "MOVZ" | "MOVK" => { instruction_type = InstructionType::IW; },
+        "MOVZ" | "MOVK" => { instruction_type = InstructionType::IM; },
         "B" | "BL" => { instruction_type = InstructionType::B; },
         "CBZ" | "CBNZ"  => { instruction_type = InstructionType::CB; },
         token => {
