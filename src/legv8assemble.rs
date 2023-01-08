@@ -166,19 +166,20 @@ fn main() {
                 },
                 InstructionType::IM => {
                     eprintln!("  The instruction \"{}\" is IM type", nice_line);
-                    eprintln!("    __________________________________________");
-                    eprintln!("    |          11 |               16 |     5 | <- Field length in bits");
-                    eprintln!("    |----------------------------------------|");
-                    eprintln!("    | 31       21 | 20             5 | 4   0 | <- Field start and end bit indexes (inclusive)");
-                    eprintln!("    |----------------------------------------|");
-                    eprintln!("    | opcode      | immediate        | Rd    | <- Field name");
-                    eprintln!("    |----------------------------------------|");
-                    eprintln!("    | {:0>11b} | {:0>16b} | {:0>5b} | <- Field contents",
-                        instruction.get_bits(31, 21),
+                    eprintln!("    ________________________________________________");
+                    eprintln!("    |         9 |     2 |               16 |     5 | <- Field length in bits");
+                    eprintln!("    |----------------------------------------------|");
+                    eprintln!("    | 31     22 | 23 21 | 20             5 | 4   0 | <- Field start and end bit indexes (inclusive)");
+                    eprintln!("    |----------------------------------------------|");
+                    eprintln!("    | opcode    | shamt | immediate        | Rd    | <- Field name");
+                    eprintln!("    |----------------------------------------------|");
+                    eprintln!("    | {:0>9b} | {:0>1b}   {:0>1b} | {:0>16b} | {:0>5b} | <- Field contents",
+                        instruction.get_bits(31, 23),
+                        instruction.get_bit(22), instruction.get_bit(21),
                         instruction.get_bits(20, 5),
                         instruction.get_bits(4, 0)
                     );
-                    eprintln!("    ------------------------------------------");
+                    eprintln!("    ------------------------------------------------");
                 }
             }
 
@@ -229,39 +230,87 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
 
     //Determine the opcode
     match instruction_type {
-        InstructionType::R | InstructionType::D | InstructionType::IM => {
+        InstructionType::R | InstructionType::D => {
             //Opcode is 11 bits
-            let opcode: u32 = 0xAB;//TESTING
-            /*match tokens[0] {
+            let opcode;
+            match tokens[0] {
+                "ADD" =>    { opcode = 0b10001011000; },
+                "SUB" =>    { opcode = 0b11001011000; },
+                "ADDS" =>   { opcode = 0b10101011000; },
+                "SUBS" =>   { opcode = 0b11101011000; },
+                "AND" =>    { opcode = 0b10001010000; },
+                "ORR" =>    { opcode = 0b10101010000; },
+                "EOR" =>    { opcode = 0b11001010000; },
+                "LSL" =>    { opcode = 0b11010011011; },
+                "LSR" =>    { opcode = 0b11010011010; },
+                "BR" =>     { opcode = 0b11010110000; },
+                "LDUR" =>   { opcode = 0b11111000010; }
+                "STUR" =>   { opcode = 0b11111000000; }
+                "LDURSW" => { opcode = 0b10111000100; }
+                "STURW" =>  { opcode = 0b10111000000; }
+                "LDURH" =>  { opcode = 0b01111000010; }
+                "STURH" =>  { opcode = 0b01111000000; }
+                "LDURB" =>  { opcode = 0b00111000010; }
+                "STURB" =>  { opcode = 0b00111000000; }
+                "LDXR" =>   { opcode = 0b11001000010; }
+                "STXR" =>   { opcode = 0b11001000000; }
+                _ => { panic!("This should never occur"); }
             }
-            */
             debug_assert!(opcode <= 0b11111111111);
             instruction.set_bits(opcode, 31, 21);
         },
         InstructionType::I => {
             //Opcode is 10 bits
-            let opcode: u32 = 0xCD;//TESTING
-            /*match tokens[0] {
+            let opcode;
+            match tokens[0] {
+                "ADDI" =>  { opcode = 0b1001000100; },
+                "SUBI" =>  { opcode = 0b1101000100; },
+                "ADDIS" => { opcode = 0b1011000100; },
+                "SUBIS" => { opcode = 0b1111000100; },
+                "ANDI" =>  { opcode = 0b1001001000; },
+                "ORRI" =>  { opcode = 0b1011001000; },
+                "EORI" =>  { opcode = 0b1101001000; },
+                _ => { panic!("This should never occur"); }
             }
-            */
             debug_assert!(opcode <= 0b1111111111);
             instruction.set_bits(opcode, 31, 22);
         },
+        InstructionType::IM => {
+            //Opcode is 9 bits
+            let opcode;
+            match tokens[0] {
+                "MOVZ" =>  { opcode = 0b110100101; },
+                "MOVK" =>  { opcode = 0b111100101; },
+                _ => { panic!("This should never occur"); }
+            }
+            debug_assert!(opcode <= 0b111111111);
+            instruction.set_bits(opcode, 31, 23);
+        },
         InstructionType::CB => {
             //Opcode is 8 bits
-            let opcode: u32 = 0xE;//TESTING
-            /*match tokens[0] {
+            let opcode;
+            match tokens[0] {
+                "CBZ" =>  { opcode = 0b10110100; },
+                "CBNZ" => { opcode = 0b10110101; },
+                token => {
+                    if token.starts_with("B.") {//B.cond
+                        opcode = 0b01010100;
+                    } else {
+                        panic!("This should never occur");
+                    }
+                }
             }
-            */
             debug_assert!(opcode <= 0b11111111);
             instruction.set_bits(opcode, 31, 24);
         },
         InstructionType::B => {
             //Opcode is 6 bits
-            let opcode: u32 = 0xF;//TESTING
-            /*match tokens[0] {
+            let opcode;
+            match tokens[0] {
+                "B" => { opcode = 0b000101; },
+                "BL" => { opcode = 0b100101; },
+                _ => { panic!("This should never occur"); }
             }
-            */
             debug_assert!(opcode <= 0b111111);
             instruction.set_bits(opcode, 31, 26);
         }
