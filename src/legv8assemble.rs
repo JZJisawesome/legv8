@@ -33,6 +33,8 @@ trait ConvenientlyBitAccessible: Sized  {
     }
 
     fn get_bits(self: Self, high: u8, low: u8) -> Self;
+
+    fn set_bits(self: &mut Self, value: Self, high: u8, low: u8);
 }
 
 /* Associated Functions and Methods */
@@ -47,6 +49,18 @@ impl ConvenientlyBitAccessible for u32 {
         let mask = (1 << num_bits_to_keep) - 1;
         let unmasked_value = self >> low;
         return unmasked_value & mask;
+    }
+
+    fn set_bits(self: &mut Self, value: Self, high: u8, low: u8) {
+        debug_assert!(high < 32);
+        debug_assert!(low < 32);
+        debug_assert!(low <= high);
+
+        let num_bits_to_change = high - low + 1;
+        let mask = ((1 << num_bits_to_change) - 1) << low;
+        let shifted_value = value << low;
+
+        *self = (*self & mask) | shifted_value;
     }
 }
 
@@ -188,7 +202,7 @@ fn main() {
 
 fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
     let tokens: Vec<&str> = instruction_string.split_whitespace().collect();
-    if tokens.len() < 2 {
+    if tokens.len() < 2 {//Basic sanity check; every instruction has at least 1 operand
         return None;
     }
 
@@ -210,12 +224,50 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
         }
     }
 
+    //Begin to construct the instruction
+    let mut instruction = 0u32;
+
     //Determine the opcode
-    /*let opcode;
-    match tokens[0] {
-
+    match instruction_type {
+        InstructionType::R | InstructionType::D | InstructionType::IM => {
+            //Opcode is 11 bits
+            let opcode: u32 = 0xAB;//TESTING
+            /*match tokens[0] {
+            }
+            */
+            debug_assert!(opcode <= 0b11111111111);
+            instruction.set_bits(opcode, 31, 21);
+        },
+        InstructionType::I => {
+            //Opcode is 10 bits
+            let opcode: u32 = 0xCD;//TESTING
+            /*match tokens[0] {
+            }
+            */
+            debug_assert!(opcode <= 0b1111111111);
+            instruction.set_bits(opcode, 31, 22);
+        },
+        InstructionType::CB => {
+            //Opcode is 8 bits
+            let opcode: u32 = 0xE;//TESTING
+            /*match tokens[0] {
+            }
+            */
+            debug_assert!(opcode <= 0b11111111);
+            instruction.set_bits(opcode, 31, 24);
+        },
+        InstructionType::B => {
+            //Opcode is 6 bits
+            let opcode: u32 = 0xF;//TESTING
+            /*match tokens[0] {
+            }
+            */
+            debug_assert!(opcode <= 0b111111);
+            instruction.set_bits(opcode, 31, 26);
+        }
     }
-    */
 
-    return Some((instruction_type, 0xDEADBEEF));//TODO
+    //TODO other fields
+
+    return Some((instruction_type, instruction));
 }
