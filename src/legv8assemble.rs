@@ -350,6 +350,8 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
         }
     }
 
+    //Determine register fields
+
     //Determine Rd/Rt/neither depending on the instruction type
     match instruction_type {
         InstructionType::R | InstructionType::I | InstructionType::D | InstructionType::CB | InstructionType::IM => {
@@ -387,6 +389,8 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
         }
     }
 
+    //Determine immediate fields
+
     //Determine the immediate/address to use from the 4th token depending on the instruction_type
     match instruction_type {
         InstructionType::I => {
@@ -395,6 +399,8 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
                     return None;
                 }
                 instruction.set_bits(immediate, 21, 10);
+            } else {
+                return None;
             }
         },
         InstructionType::D => {
@@ -403,12 +409,24 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
                     return None;
                 }
                 instruction.set_bits(address, 20, 12);
+            } else {
+                return None;
             }
         },
         InstructionType::R | InstructionType::CB | InstructionType::IM | InstructionType::B => {}//They do not have this field
     }
 
-    //TODO other fields
+    //Determine the branch address to use from the second token if the instruction type is B
+    if matches!(instruction_type, InstructionType::B) {
+        if let Some(address) = smart_parse_uint(tokens[1]) {
+            if address > 0b11111111111111111111111111 {//Too large for the field to hold
+                return None;
+            }
+            instruction.set_bits(address, 25, 0);
+        } else {
+            return None;
+        }
+    }
 
     return Some((instruction_type, instruction));
 }
