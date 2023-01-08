@@ -60,7 +60,9 @@ impl ConvenientlyBitAccessible for u32 {
         let mask = ((1 << num_bits_to_change) - 1) << low;
         let shifted_value = value << low;
 
-        *self = (*self & mask) | shifted_value;
+        eprintln!("Before: {}", *self);
+        *self = (*self & !mask) | shifted_value;
+        eprintln!("After: {}", *self);
     }
 }
 
@@ -203,7 +205,7 @@ fn main() {
 
 fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
     let mut tokens = Vec::<&str>::with_capacity(5);//Max number of tokens we expect
-    for token in instruction_string.split(&[' ', '\t', '\n', '\r', ',', '[', ']']) {
+    for token in instruction_string.split(&[' ', '\t', '\n', '\r', ',', '[', ']']) {//TODO ensure the syntax is correct instead of just stripping out these symbols when splitting
         if !token.is_empty() {
             tokens.push(token);
         }
@@ -258,7 +260,7 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
     //However, the tokens themselves, as well as the condition for B.cond, will still need checking
 
     //Begin to construct the instruction
-    let mut instruction = 0u32;
+    let mut instruction = 0u32;//Fields are 0 to begin with
 
     //Determine the opcode
     match instruction_type {
@@ -353,9 +355,32 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
         InstructionType::R | InstructionType::I | InstructionType::D | InstructionType::CB | InstructionType::IM => {
             if let Some(rd_rt) = parse_register(tokens[1]) {
                 instruction.set_bits(rd_rt, 4, 0);
+            } else {
+                return None;
             }
         }
         InstructionType::B => {}//It does not have this field
+    }
+
+    //Determine Rn depending on the instruction type
+    match instruction_type {
+        InstructionType::R | InstructionType::I | InstructionType::D => {
+            if let Some(rn) = parse_register(tokens[2]) {
+                instruction.set_bits(rn, 9, 5);
+            } else {
+                return None;
+            }
+        }
+        InstructionType::CB | InstructionType::IM | InstructionType::B => {}//They do not have this field
+    }
+
+    //Determine Rm if the instruction type is R
+    if matches!(instruction_type, InstructionType::R) {
+        if let Some(rm) = parse_register(tokens[3]) {
+            instruction.set_bits(rm, 20, 16);
+        } else {
+            return None;
+        }
     }
 
     //TODO other fields
@@ -377,6 +402,26 @@ fn parse_register(register_token: &str) -> Option<u32> {
             return None;
         }
     } else {//Register did not start with X
+        return None;
+    }
+}
+
+fn smart_parse_uint(uint_string: &str) -> Option<u32> {
+    if let Some(binary_uint_string) = uint_string.strip_prefix("0b") {
+        return u32::from_str_radix(binary_uint_string, 2).ok();
+    } else if let Some(binary_uint_string) = uint_string.strip_prefix("0B") {
+        return u32::from_str_radix(binary_uint_string, 2).ok();
+    } else if let Some(hex_uint_string) = uint_string.strip_prefix("0x") {
+        return u32::from_str_radix(hex_uint_string, 16).ok();
+    } else if let Some(hex_uint_string) = uint_string.strip_prefix("0X") {
+        return u32::from_str_radix(hex_uint_string, 16).ok();
+    } else if let Some(oct_uint_string) = uint_string.strip_prefix("0o") {
+        return u32::from_str_radix(oct_uint_string, 8).ok();
+    } else if let Some(oct_uint_string) = uint_string.strip_prefix("0O") {
+        return u32::from_str_radix(oct_uint_string, 8).ok();
+    } else if let Some(dec_uint) = uint_string.parse::<u32>().ok() {
+        return Some(dec_uint);
+    } else {
         return None;
     }
 }
