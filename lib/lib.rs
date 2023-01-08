@@ -23,7 +23,11 @@
 
 /* Types */
 
-//TODO
+pub enum InstructionType {
+    R,
+    I,
+    D
+}
 
 /* Associated Functions and Methods */
 
