@@ -57,12 +57,12 @@ impl ConvenientlyBitAccessible for u32 {
         debug_assert!(low <= high);
 
         let num_bits_to_change = high - low + 1;
-        let mask = ((1 << num_bits_to_change) - 1) << low;
+        let mask_unshifted = (1 << num_bits_to_change) - 1;
+        let mask = mask_unshifted << low;
+        debug_assert!(value <= mask_unshifted);
         let shifted_value = value << low;
 
-        eprintln!("Before: {}", *self);
         *self = (*self & !mask) | shifted_value;
-        eprintln!("After: {}", *self);
     }
 }
 
@@ -365,10 +365,12 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
     //Determine Rn depending on the instruction type
     match instruction_type {
         InstructionType::R | InstructionType::I | InstructionType::D => {
-            if let Some(rn) = parse_register(tokens[2]) {
-                instruction.set_bits(rn, 9, 5);
-            } else {
-                return None;
+            if tokens[0] != "BR" {//This one does not have the Rn operand
+                if let Some(rn) = parse_register(tokens[2]) {
+                    instruction.set_bits(rn, 9, 5);
+                } else {
+                    return None;
+                }
             }
         }
         InstructionType::CB | InstructionType::IM | InstructionType::B => {}//They do not have this field
@@ -376,11 +378,34 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
 
     //Determine Rm if the instruction type is R
     if matches!(instruction_type, InstructionType::R) {
-        if let Some(rm) = parse_register(tokens[3]) {
-            instruction.set_bits(rm, 20, 16);
-        } else {
-            return None;
+        if tokens[0] != "BR" {//This one does not have the Rn operand
+            if let Some(rm) = parse_register(tokens[3]) {
+                instruction.set_bits(rm, 20, 16);
+            } else {
+                return None;
+            }
         }
+    }
+
+    //Determine the immediate/address to use from the 4th token depending on the instruction_type
+    match instruction_type {
+        InstructionType::I => {
+            if let Some(immediate) = smart_parse_uint(tokens[3]) {
+                if immediate > 0b111111111111 {//Too large for the field to hold
+                    return None;
+                }
+                instruction.set_bits(immediate, 21, 10);
+            }
+        },
+        InstructionType::D => {
+            if let Some(address) = smart_parse_uint(tokens[3]) {
+                if address > 0b111111111 {//Too large for the field to hold
+                    return None;
+                }
+                instruction.set_bits(address, 20, 12);
+            }
+        },
+        InstructionType::R | InstructionType::CB | InstructionType::IM | InstructionType::B => {}//They do not have this field
     }
 
     //TODO other fields
