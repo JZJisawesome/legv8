@@ -1,6 +1,6 @@
 /* legv8assembles.rs
  * By: John Jekel
- * Copyright (C) 2022-2023 John Jekel
+ * Copyright (C) 2023 John Jekel
  * See the LICENSE file at the root of the project for licensing info.
  *
  * Assembles individual LEGv8 instructions
@@ -69,7 +69,9 @@ impl ConvenientlyBitAccessible for u32 {
 /* Functions */
 
 fn main() {
-    eprintln!("\x1b[1m\x1b[35mlegv8assemble\x1b[0m, by \x1b[96mJohn Jekel\x1b[0m (2023)\n");
+    eprintln!("\x1b[1m\x1b[35mlegv8assemble\x1b[0m, by \x1b[96mJZJ\x1b[0m :)");
+    eprintln!("Copyright (C) 2023 John Jekel");
+    eprintln!("See the LICENSE file at the root of the project for licensing info.\n");
     eprintln!("\x1b[90mAt the prompt, enter a LEGv8 instruction to assemble, or press Ctrl+C to exit...\x1b[0m");
 
     let stdin = std::io::stdin();
@@ -394,21 +396,25 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
     //Determine the immediate/address to use from the 4th token depending on the instruction_type
     match instruction_type {
         InstructionType::I => {
-            if let Some(immediate) = smart_parse_uint(tokens[3]) {
-                if immediate > 0b111111111111 {//Too large for the field to hold
+            if let Some(immediate) = smart_parse_immediate(tokens[3]) {
+                //The field is 12 bits, so immediate must be between -2048 and +2047
+                if (immediate < -2048) || (immediate > 2047) {//Too large for the field to hold
                     return None;
                 }
-                instruction.set_bits(immediate, 21, 10);
+                let masked_immediate = (immediate as u32) & 0b111111111111;
+                instruction.set_bits(masked_immediate as u32, 21, 10);
             } else {
                 return None;
             }
         },
         InstructionType::D => {
-            if let Some(address) = smart_parse_uint(tokens[3]) {
-                if address > 0b111111111 {//Too large for the field to hold
+            if let Some(address) = smart_parse_immediate(tokens[3]) {
+                //The field is 9 bits, so address must be between -512 and +511
+                if (address < -512) || (address > 511) {//Too large for the field to hold
                     return None;
                 }
-                instruction.set_bits(address, 20, 12);
+                let masked_address = (address as u32) & 0b111111111;
+                instruction.set_bits(masked_address, 20, 12);
             } else {
                 return None;
             }
@@ -418,11 +424,13 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
 
     //Determine the branch address to use from the second token if the instruction type is B
     if matches!(instruction_type, InstructionType::B) {
-        if let Some(address) = smart_parse_uint(tokens[1]) {
-            if address > 0b11111111111111111111111111 {//Too large for the field to hold
+        if let Some(address) = smart_parse_immediate(tokens[1]) {
+            //The field is 26 bits, so address must be between -33554432 and 33554431
+            if (address < -33554432) || (address > 33554431) {//Too large for the field to hold
                 return None;
             }
-            instruction.set_bits(address, 25, 0);
+            let masked_address = (address as u32) & 0b11111111111111111111111111;
+            instruction.set_bits(masked_address, 25, 0);
         } else {
             return None;
         }
@@ -431,21 +439,25 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
     //Determine the branch address/immediate to use from the third token if the instruction type is CB or IM respectively
     match instruction_type {
         InstructionType::CB => {
-            if let Some(address) = smart_parse_uint(tokens[2]) {
-                if address > 0b1111111111111111111 {//Too large for the field to hold
+            if let Some(address) = smart_parse_immediate(tokens[2]) {
+                //The field is 19 bits, so address must be between -262144 and 262143
+                if (address < -262144) || (address > 262143) {//Too large for the field to hold
                     return None;
                 }
-                instruction.set_bits(address, 23, 5);
+                let masked_address = (address as u32) & 0b1111111111111111111;
+                instruction.set_bits(masked_address, 23, 5);
             } else {
                 return None;
             }
         },
         InstructionType::IM => {
-            if let Some(address) = smart_parse_uint(tokens[2]) {
-                if address > 0b1111111111111111 {//Too large for the field to hold
+            if let Some(immediate) = smart_parse_immediate(tokens[2]) {
+                //The field is 16 bits, so immediate must be between -32768 and 32767
+                if (immediate < -32768) || (immediate > 32767) {//Too large for the field to hold
                     return None;
                 }
-                instruction.set_bits(address, 20, 5);
+                let masked_immediate = (immediate as u32) & 0b1111111111111111;
+                instruction.set_bits(masked_immediate, 20, 5);
             } else {
                 return None;
             }
@@ -461,7 +473,7 @@ fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
         }
 
         //There are only 4 valid shift amounts that can come after
-        match smart_parse_uint(tokens[4]) {
+        match smart_parse_immediate(tokens[4]) {
             Some(0) =>  { instruction.set_bits(0b00, 22, 21); },
             Some(16) => { instruction.set_bits(0b01, 22, 21); },
             Some(32) => { instruction.set_bits(0b10, 22, 21); },
@@ -493,20 +505,20 @@ fn parse_register(register_token: &str) -> Option<u32> {
     }
 }
 
-fn smart_parse_uint(uint_string: &str) -> Option<u32> {
+fn smart_parse_immediate(uint_string: &str) -> Option<i32> {
     if let Some(binary_uint_string) = uint_string.strip_prefix("0b") {
-        return u32::from_str_radix(binary_uint_string, 2).ok();
+        return i32::from_str_radix(binary_uint_string, 2).ok();
     } else if let Some(binary_uint_string) = uint_string.strip_prefix("0B") {
-        return u32::from_str_radix(binary_uint_string, 2).ok();
+        return i32::from_str_radix(binary_uint_string, 2).ok();
     } else if let Some(hex_uint_string) = uint_string.strip_prefix("0x") {
-        return u32::from_str_radix(hex_uint_string, 16).ok();
+        return i32::from_str_radix(hex_uint_string, 16).ok();
     } else if let Some(hex_uint_string) = uint_string.strip_prefix("0X") {
-        return u32::from_str_radix(hex_uint_string, 16).ok();
+        return i32::from_str_radix(hex_uint_string, 16).ok();
     } else if let Some(oct_uint_string) = uint_string.strip_prefix("0o") {
-        return u32::from_str_radix(oct_uint_string, 8).ok();
+        return i32::from_str_radix(oct_uint_string, 8).ok();
     } else if let Some(oct_uint_string) = uint_string.strip_prefix("0O") {
-        return u32::from_str_radix(oct_uint_string, 8).ok();
-    } else if let Some(dec_uint) = uint_string.parse::<u32>().ok() {
+        return i32::from_str_radix(oct_uint_string, 8).ok();
+    } else if let Some(dec_uint) = uint_string.parse::<i32>().ok() {
         return Some(dec_uint);
     } else {
         return None;

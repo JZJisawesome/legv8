@@ -1,6 +1,6 @@
 /* legv8disassemble.rs
  * By: John Jekel
- * Copyright (C) 2022-2023 John Jekel
+ * Copyright (C) 2023 John Jekel
  * See the LICENSE file at the root of the project for licensing info.
  *
  * Disassembles individual LEGv8 instructions
@@ -34,5 +34,6 @@
 /* Functions */
 
 fn main() {
+    eprintln!("Coming soon!");
     todo!();
 }

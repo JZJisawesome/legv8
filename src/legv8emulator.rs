@@ -1,6 +1,6 @@
 /* legv8emulator.rs
  * By: John Jekel
- * Copyright (C) 2022-2023 John Jekel
+ * Copyright (C) 2023 John Jekel
  * See the LICENSE file at the root of the project for licensing info.
  *
  * Emulates a LEGv8 system
@@ -35,5 +35,6 @@
 
 fn main() {
     //TODO use HashMap for sparse memory since we don't care about performance
+    eprintln!("Coming soon!");
     todo!();
 }
