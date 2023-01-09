@@ -47,8 +47,8 @@ fn main() {
     eprintln!("\x1b[1m\x1b[35mlegv8assemble\x1b[0m, by \x1b[96mJZJ\x1b[0m :)");
     eprintln!("Copyright (C) 2023 John Jekel");
     eprintln!("See the LICENSE file at the root of the project for licensing info.\n");
-    eprintln!("\x1b[90mAt the prompt, enter a LEGv8 instruction to assemble, or press Ctrl+C to exit...\x1b[0m");
 
+    eprintln!("\x1b[90mAt the prompt, enter a LEGv8 instruction to assemble, or press Ctrl+C to exit...\x1b[0m");
     let stdin = std::io::stdin();
     let mut line_buffer = String::new();
     loop {

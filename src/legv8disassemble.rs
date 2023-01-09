@@ -34,6 +34,11 @@
 /* Functions */
 
 fn main() {
+    //TESTING
+    use legv8::asm::assemble_raw;
+    let test = assemble_raw("add x1, x2, x3");
+    eprintln!("Result: {:?}", test);
+
     eprintln!("Coming soon!");
     todo!();
 }

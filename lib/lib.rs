@@ -74,7 +74,8 @@ pub enum DecodedOpcode {
     B_cond,
     B,
     BR,
-    BL
+    BL,
+    Invalid
 }
 
 pub trait ConvenientlyBitAccessible: Sized  {
