@@ -136,118 +136,103 @@ pub fn assemble_raw(instruction_string: &str) -> Option<DecodedInstruction> {//D
     //However, the tokens themselves, as well as the condition for B.cond, will still need checking
 
     //Begin to construct the instruction
-    eprintln!("TESTING: {:?}", decoded_instruction);//TESTING
+    /*eprintln!("TESTING: {:?}", decoded_instruction);//TESTING
     match &mut decoded_instruction {//This works!
         DecodedInstruction::R{opcode, ..} => {
             *opcode = DecodedOpcode::ADD;
         }
         _ => {panic!("testing");}
     }
+    */
 
     //Determine the opcode
-    /*match instruction_type {
-        DecodedInstruction::R{} | DecodedInstruction::D => {
+    match &mut decoded_instruction {
+        DecodedInstruction::R{opcode, ..} | DecodedInstruction::D{opcode, ..} => {
             //Opcode is 11 bits
-            let opcode;
             match tokens[0] {
-                "ADD" =>    { opcode = 0b10001011000; },
-                "SUB" =>    { opcode = 0b11001011000; },
-                "ADDS" =>   { opcode = 0b10101011000; },
-                "SUBS" =>   { opcode = 0b11101011000; },
-                "AND" =>    { opcode = 0b10001010000; },
-                "ORR" =>    { opcode = 0b10101010000; },
-                "EOR" =>    { opcode = 0b11001010000; },
-                "LSL" =>    { opcode = 0b11010011011; },
-                "LSR" =>    { opcode = 0b11010011010; },
-                "BR" =>     { opcode = 0b11010110000; },
-                "LDUR" =>   { opcode = 0b11111000010; }
-                "STUR" =>   { opcode = 0b11111000000; }
-                "LDURSW" => { opcode = 0b10111000100; }
-                "STURW" =>  { opcode = 0b10111000000; }
-                "LDURH" =>  { opcode = 0b01111000010; }
-                "STURH" =>  { opcode = 0b01111000000; }
-                "LDURB" =>  { opcode = 0b00111000010; }
-                "STURB" =>  { opcode = 0b00111000000; }
-                "LDXR" =>   { opcode = 0b11001000010; }
-                "STXR" =>   { opcode = 0b11001000000; }
+                "ADD" =>    { *opcode = DecodedOpcode::ADD; },
+                "SUB" =>    { *opcode = DecodedOpcode::SUB; },
+                "ADDS" =>   { *opcode = DecodedOpcode::ADDS; },
+                "SUBS" =>   { *opcode = DecodedOpcode::SUBS; },
+                "AND" =>    { *opcode = DecodedOpcode::AND; },
+                "ORR" =>    { *opcode = DecodedOpcode::ORR; },
+                "EOR" =>    { *opcode = DecodedOpcode::EOR; },
+                "LSL" =>    { *opcode = DecodedOpcode::LSL; },
+                "LSR" =>    { *opcode = DecodedOpcode::LSR; },
+                "BR" =>     { *opcode = DecodedOpcode::BR; },
+                "LDUR" =>   { *opcode = DecodedOpcode::LDUR; }
+                "STUR" =>   { *opcode = DecodedOpcode::STUR; }
+                "LDURSW" => { *opcode = DecodedOpcode::LDURSW; }
+                "STURW" =>  { *opcode = DecodedOpcode::STURW; }
+                "LDURH" =>  { *opcode = DecodedOpcode::LDURH; }
+                "STURH" =>  { *opcode = DecodedOpcode::STURH; }
+                "LDURB" =>  { *opcode = DecodedOpcode::LDURB; }
+                "STURB" =>  { *opcode = DecodedOpcode::STURB; }
+                "LDXR" =>   { *opcode = DecodedOpcode::LDXR; }
+                "STXR" =>   { *opcode = DecodedOpcode::STXR; }
                 _ => { panic!("This should never occur"); }
             }
-            debug_assert!(opcode <= 0b11111111111);
-            instruction.set_bits(opcode, 31, 21);
         },
-        DecodedInstruction::I => {
+        DecodedInstruction::I{opcode, ..} => {
             //Opcode is 10 bits
-            let opcode;
             match tokens[0] {
-                "ADDI" =>  { opcode = 0b1001000100; },
-                "SUBI" =>  { opcode = 0b1101000100; },
-                "ADDIS" => { opcode = 0b1011000100; },
-                "SUBIS" => { opcode = 0b1111000100; },
-                "ANDI" =>  { opcode = 0b1001001000; },
-                "ORRI" =>  { opcode = 0b1011001000; },
-                "EORI" =>  { opcode = 0b1101001000; },
+                "ADDI" =>  { *opcode = DecodedOpcode::ADDI; },
+                "SUBI" =>  { *opcode = DecodedOpcode::SUBI; },
+                "ADDIS" => { *opcode = DecodedOpcode::ADDIS; },
+                "SUBIS" => { *opcode = DecodedOpcode::SUBIS; },
+                "ANDI" =>  { *opcode = DecodedOpcode::ANDI; },
+                "ORRI" =>  { *opcode = DecodedOpcode::ORRI; },
+                "EORI" =>  { *opcode = DecodedOpcode::EORI; },
                 _ => { panic!("This should never occur"); }
             }
-            debug_assert!(opcode <= 0b1111111111);
-            instruction.set_bits(opcode, 31, 22);
         },
-        DecodedInstruction::IM => {
+        DecodedInstruction::IW{opcode, ..} => {
             //Opcode is 9 bits
-            let opcode;
             match tokens[0] {
-                "MOVZ" =>  { opcode = 0b110100101; },
-                "MOVK" =>  { opcode = 0b111100101; },
+                "MOVZ" =>  { *opcode = DecodedOpcode::MOVZ; },
+                "MOVK" =>  { *opcode = DecodedOpcode::MOVK; },
                 _ => { panic!("This should never occur"); }
             }
-            debug_assert!(opcode <= 0b111111111);
-            instruction.set_bits(opcode, 31, 23);
         },
-        DecodedInstruction::CB => {
+        DecodedInstruction::CB{opcode, ..} => {
             //Opcode is 8 bits
-            let opcode;
             match tokens[0] {
-                "CBZ" =>  { opcode = 0b10110100; },
-                "CBNZ" => { opcode = 0b10110101; },
+                "CBZ" =>  { *opcode = DecodedOpcode::CBZ; },
+                "CBNZ" => { *opcode = DecodedOpcode::CBNZ; },
                 token => {
                     if token.starts_with("B.") {//B.cond
-                        opcode = 0b01010100;
+                        *opcode = DecodedOpcode::B_cond;
                     } else {
                         panic!("This should never occur");
                     }
                 }
             }
-            debug_assert!(opcode <= 0b11111111);
-            instruction.set_bits(opcode, 31, 24);
         },
-        DecodedInstruction::B => {
+        DecodedInstruction::B{opcode, ..} => {
             //Opcode is 6 bits
-            let opcode;
             match tokens[0] {
-                "B" => { opcode = 0b000101; },
-                "BL" => { opcode = 0b100101; },
+                "B" => { *opcode = DecodedOpcode::B; },
+                "BL" => { *opcode = DecodedOpcode::BL; },
                 _ => { panic!("This should never occur"); }
             }
-            debug_assert!(opcode <= 0b111111);
-            instruction.set_bits(opcode, 31, 26);
         }
     }
-    */
 
-/*
     //Determine register fields
 
     //Determine Rd/Rt/neither depending on the instruction type
-    match instruction_type {
-        DecodedInstruction::R | DecodedInstruction::I | DecodedInstruction::D | DecodedInstruction::CB | DecodedInstruction::IM => {
-            if let Some(rd_rt) = parse_register(tokens[1]) {
-                instruction.set_bits(rd_rt, 4, 0);
+    match &mut decoded_instruction {
+        DecodedInstruction::R{rd: rd_rt, ..} | DecodedInstruction::I{rd: rd_rt, ..} | DecodedInstruction::D{rt: rd_rt, ..} | DecodedInstruction::CB{rt: rd_rt, ..} | DecodedInstruction::IW{rd: rd_rt, ..} => {
+            if let Some(parsed_rd_rt) = parse_register(tokens[1]) {
+                *rd_rt = parsed_rd_rt;
             } else {
                 return None;
             }
         }
-        DecodedInstruction::B => {}//It does not have this field
+        DecodedInstruction::B{..} => {}//It does not have this field
     }
 
+/*
     //Determine Rn depending on the instruction type
     match instruction_type {
         DecodedInstruction::R | DecodedInstruction::I | DecodedInstruction::D => {
@@ -370,6 +355,24 @@ pub fn assemble_raw(instruction_string: &str) -> Option<DecodedInstruction> {//D
     */
 
     return Some(decoded_instruction);
+}
+
+fn parse_register(register_token: &str) -> Option<u8> {
+    if let Some(relevant_part_of_token) = register_token.strip_prefix("X") {
+        if let Some(parsed_register_number) = relevant_part_of_token.parse::<u8>().ok() {
+            if parsed_register_number < 32 {
+                return Some(parsed_register_number);
+            } else {
+                return None;
+            }
+        } else if relevant_part_of_token == "ZR" {//The zero register
+            return Some(31);
+        } else {
+            return None;
+        }
+    } else {//Register did not start with X
+        return None;
+    }
 }
 
 fn smart_parse_immediate(uint_string: &str) -> Option<i32> {
