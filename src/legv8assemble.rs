@@ -11,7 +11,7 @@
 
 /* Imports */
 
-use legv8::InstructionType;
+use legv8::ConvenientlyBitAccessible;
 
 /* Constants */
 
@@ -27,44 +27,19 @@ use legv8::InstructionType;
 
 /* Types */
 
-trait ConvenientlyBitAccessible: Sized  {
-    fn get_bit(self: Self, index: u8) -> Self {
-        return self.get_bits(index, index);
-    }
-
-    fn get_bits(self: Self, high: u8, low: u8) -> Self;
-
-    fn set_bits(self: &mut Self, value: Self, high: u8, low: u8);
+#[derive(Copy, Clone, Debug)]
+pub enum InstructionType {//TODO remove this
+    R,
+    I,
+    D,
+    B,
+    CB,
+    IM
 }
 
 /* Associated Functions and Methods */
 
-impl ConvenientlyBitAccessible for u32 {
-    fn get_bits(self: Self, high: u8, low: u8) -> u32 {
-        debug_assert!(high < 32);
-        debug_assert!(low < 32);
-        debug_assert!(low <= high);
-
-        let num_bits_to_keep = high - low + 1;
-        let mask = (1 << num_bits_to_keep) - 1;
-        let unmasked_value = self >> low;
-        return unmasked_value & mask;
-    }
-
-    fn set_bits(self: &mut Self, value: Self, high: u8, low: u8) {
-        debug_assert!(high < 32);
-        debug_assert!(low < 32);
-        debug_assert!(low <= high);
-
-        let num_bits_to_change = high - low + 1;
-        let mask_unshifted = (1 << num_bits_to_change) - 1;
-        let mask = mask_unshifted << low;
-        debug_assert!(value <= mask_unshifted);
-        let shifted_value = value << low;
-
-        *self = (*self & !mask) | shifted_value;
-    }
-}
+//TODO
 
 /* Functions */
 
@@ -169,7 +144,7 @@ fn main() {
                     eprintln!("    ------------------------------------------");
                 },
                 InstructionType::IM => {
-                    eprintln!("  The instruction \"\x1b[1m{}\x1b[0m\" is \x1b[94mIM\x1b[0m-type", nice_line);
+                    eprintln!("  The instruction \"\x1b[1m{}\x1b[0m\" is \x1b[94mIW\x1b[0m-type", nice_line);
                     eprintln!("    ________________________________________________");
                     eprintln!("    |         \x1b[93m9\x1b[0m |     \x1b[93m2\x1b[0m |               \x1b[93m16\x1b[0m |     \x1b[93m5\x1b[0m | \x1b[90m<- Field length in bits\x1b[0m");
                     eprintln!("    |----------------------------------------------|");

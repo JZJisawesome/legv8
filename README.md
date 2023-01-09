@@ -59,7 +59,7 @@ You can now type in a LEGv8 instruction you'd like to assemble, for example:
 
 ```
 legv8assemble> movz x1, 1234, lsl 48
-  The instruction "MOVZ X1, 1234, LSL 48" is IM-type
+  The instruction "MOVZ X1, 1234, LSL 48" is IW-type
     ________________________________________________
     |         9 |     2 |               16 |     5 | <- Field length in bits
     |----------------------------------------------|
@@ -123,11 +123,11 @@ legv8assemble> ^C
 $
 ```
 
-## Disassembler
+## Using the Disassembler
 
 Coming soon!
 
-## Emulator
+## Using the Emulator
 
 Coming soon!
 
