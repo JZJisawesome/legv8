@@ -53,7 +53,7 @@ pub fn assemble_raw(instruction_string: &str) -> Option<DecodedInstruction> {//D
             decoded_instruction = DecodedInstruction::R{
                 opcode: DecodedOpcode::Invalid,
                 rm: 0xFF,
-                shamt: 0xFF,
+                shamt: 0,//Always 0 in LEGv8
                 rn: 0xFF,
                 rd: 0xFF
             };
@@ -70,7 +70,7 @@ pub fn assemble_raw(instruction_string: &str) -> Option<DecodedInstruction> {//D
             decoded_instruction = DecodedInstruction::D{
                 opcode: DecodedOpcode::Invalid,
                 addr9: 0xFFFF,
-                op2: 0xFF,
+                op2: 0,//Always 0 in LEGv8
                 rn: 0xFF,
                 rt: 0xFF
             };
@@ -136,14 +136,6 @@ pub fn assemble_raw(instruction_string: &str) -> Option<DecodedInstruction> {//D
     //However, the tokens themselves, as well as the condition for B.cond, will still need checking
 
     //Begin to construct the instruction
-    /*eprintln!("TESTING: {:?}", decoded_instruction);//TESTING
-    match &mut decoded_instruction {//This works!
-        DecodedInstruction::R{opcode, ..} => {
-            *opcode = DecodedOpcode::ADD;
-        }
-        _ => {panic!("testing");}
-    }
-    */
 
     //Determine the opcode
     match &mut decoded_instruction {
@@ -232,32 +224,33 @@ pub fn assemble_raw(instruction_string: &str) -> Option<DecodedInstruction> {//D
         DecodedInstruction::B{..} => {}//It does not have this field
     }
 
-/*
+
     //Determine Rn depending on the instruction type
-    match instruction_type {
-        DecodedInstruction::R | DecodedInstruction::I | DecodedInstruction::D => {
+    match &mut decoded_instruction {
+        DecodedInstruction::R{rn, ..} | DecodedInstruction::I{rn, ..} | DecodedInstruction::D{rn, ..} => {
             if tokens[0] != "BR" {//This one does not have the Rn operand
-                if let Some(rn) = parse_register(tokens[2]) {
-                    instruction.set_bits(rn, 9, 5);
+                if let Some(parsed_rn) = parse_register(tokens[2]) {
+                    *rn = parsed_rn;
                 } else {
                     return None;
                 }
             }
         }
-        DecodedInstruction::CB | DecodedInstruction::IM | DecodedInstruction::B => {}//They do not have this field
+        DecodedInstruction::CB{..} | DecodedInstruction::IW{..} | DecodedInstruction::B{..} => {}//They do not have this field
     }
 
     //Determine Rm if the instruction type is R
-    if matches!(instruction_type, DecodedInstruction::R) {
-        if tokens[0] != "BR" {//This one does not have the Rn operand
-            if let Some(rm) = parse_register(tokens[3]) {
-                instruction.set_bits(rm, 20, 16);
+    if let DecodedInstruction::R{rm, ..} = &mut decoded_instruction {
+        if tokens[0] != "BR" {//This one does not have the Rm operand
+            if let Some(parsed_rm) = parse_register(tokens[3]) {
+                *rm = parsed_rm;
             } else {
                 return None;
             }
         }
     }
 
+/*
     //Determine immediate fields
 
     //Determine the immediate/address to use from the 4th token depending on the instruction_type

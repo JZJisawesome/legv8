@@ -11,7 +11,7 @@
 
 /* Imports */
 
-use legv8::ConvenientlyBitAccessible;
+use legv8::{asm, encode, ConvenientlyBitAccessible};
 
 /* Constants */
 
@@ -28,13 +28,13 @@ use legv8::ConvenientlyBitAccessible;
 /* Types */
 
 #[derive(Copy, Clone, Debug)]
-pub enum InstructionType {//TODO remove this
+pub enum InstructionType {
     R,
     I,
     D,
     B,
     CB,
-    IM
+    IM//TODO fix to be IW
 }
 
 /* Associated Functions and Methods */
@@ -44,7 +44,7 @@ pub enum InstructionType {//TODO remove this
 /* Functions */
 
 fn main() {
-    eprintln!("\x1b[1m\x1b[35mlegv8assemble\x1b[0m, by \x1b[96mJZJ\x1b[0m :)");
+    eprintln!("\x1b[1m\x1b[35mlegv8assemble\x1b[0m, by \x1b[96mJZJ\x1b[0m :)");//TODO replace this with figlet
     eprintln!("Copyright (C) 2023 John Jekel");
     eprintln!("See the LICENSE file at the root of the project for licensing info.\n");
 
@@ -57,7 +57,7 @@ fn main() {
         let trimmed_line = line_buffer.trim();
         let nice_line = trimmed_line.to_string().to_uppercase();
 
-        if let Some((instruction_type, instruction)) = assemble(&nice_line) {
+        if let Some((instruction_type, instruction)) = assemble_to_raw_instruction(&nice_line) {
             match instruction_type {
                 InstructionType::R => {
                     eprintln!("  The instruction \"\x1b[1m{}\x1b[0m\" is \x1b[94mR\x1b[0m-type", nice_line);
@@ -180,7 +180,19 @@ fn main() {
     }
 }
 
-fn assemble(instruction_string: &str) -> Option<(InstructionType, u32)> {
+fn assemble_to_raw_instruction(instruction_string: &str) -> Option<(InstructionType, u32)> {
+    //TODO replace this function with a wrapper over library functions
+    /*
+    let assembly_result = asm::assemble_raw(instruction_string)?;
+    let instruction_type;
+    match assembly_result {
+        //TODO convert to InstructionType
+    }
+
+    let raw_instruction = encode::encode(assembly_result)?;
+    return Some(instruction_type, raw_instruction);
+    */
+
     let mut tokens = Vec::<&str>::with_capacity(5);//Max number of tokens we expect
     for token in instruction_string.split(&[' ', '\t', '\n', '\r', ',', '[', ']']) {//TODO ensure the syntax is correct instead of just stripping out these symbols when splitting
         if !token.is_empty() {
